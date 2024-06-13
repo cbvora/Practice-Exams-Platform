@@ -32,6 +32,7 @@ const QuizForm: FC<Props> = ({
   const [savedAnswers, setSavedAnswers] = useState<{
     [key: number]: string | string[];
   }>({});
+
   const [selectedImage, setSelectedImage] = useState<{
     url: string;
     alt: string;
@@ -133,20 +134,7 @@ const QuizForm: FC<Props> = ({
             disabled={!(currentQuestionIndex > 1) || !canGoBack}
             className="group"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className="w-6 h-6 text-slate-300 group-disabled:text-transparent"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"
-              />
-            </svg>
+            BACK
           </button>
           <div className="flex justify-center relative w-[15%] z-[1]">
             <span className="absolute text-white opacity-10 font-bold text-6xl bottom-0 -z-[1] select-none">

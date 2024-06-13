@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { gql, useQuery } from "@apollo/client";
 import type { NextPage } from "next";
 import QuizForm from "@azure-fundamentals/components/QuizForm";
@@ -29,11 +30,15 @@ const questionsQuery = gql`
   }
 `;
 
-const Practice: NextPage<{ searchParams: { url: string; name: string } }> = ({
-  searchParams,
-}) => {
-  const { url } = searchParams;
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(1);
+const Practice: NextPage = () => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const url = searchParams.get("url") || "";
+  const seqParam = searchParams.get("seq");
+  const seq = seqParam ? parseInt(seqParam) : 1;
+
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(seq);
   const editedUrl = url.substring(0, url.lastIndexOf("/") + 1);
 
   const { loading, error, data } = useQuery(questionQuery, {
@@ -48,15 +53,36 @@ const Practice: NextPage<{ searchParams: { url: string; name: string } }> = ({
     variables: { link: url },
   });
 
+  const setThisSeqIntoURL = useCallback(
+    (seq: number) => {
+      const newSearchParams = new URLSearchParams(searchParams.toString());
+      newSearchParams.set("seq", seq.toString());
+      const newUrl = `${
+        window.location.pathname
+      }?${newSearchParams.toString()}`;
+      router.push(newUrl, { shallow: true });
+    },
+    [router, searchParams],
+  );
+
+  useEffect(() => {
+    if (seq > 0 && seq - 1 < questionsData?.questions?.count) {
+      setCurrentQuestionIndex(seq);
+    } else {
+      setCurrentQuestionIndex(1);
+      setThisSeqIntoURL(1);
+    }
+  }, [questionsData?.questions?.count, seq, setThisSeqIntoURL]);
+
   const handleNextQuestion = (questionNo: number) => {
     if (questionNo > 0 && questionNo - 1 < questionsData?.questions?.count) {
       setCurrentQuestionIndex(questionNo);
+      setThisSeqIntoURL(questionNo);
     }
   };
 
   if (error) return <p>Oh no... {error.message}</p>;
   if (questionsError) return <p>Oh no... {questionsError.message}</p>;
-
   return (
     <div className="py-10 px-5 mb-6 sm:p-10 mx-auto w-[90vw] lg:w-[60vw] 2xl:w-[45%] bg-slate-800 border-2 border-slate-700 rounded-lg">
       <QuizForm
